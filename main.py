@@ -1,6 +1,6 @@
 import telebot
 
-bot = telebot.TeleBot('6217254132:AAEdGaOyvaQMTLqffnGtUheeWpejnqgUmNs')
+bot = telebot.TeleBot('')
 print("bot started")
 
 user = bot.get_me()
