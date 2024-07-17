@@ -2,6 +2,7 @@ import telebot
 import random
 import time
 from telebot import types
+import os
 
 bot = telebot.TeleBot('6217254132:AAEdGaOyvaQMTLqffnGtUheeWpejnqgUmNs')
 print("bot started")
@@ -51,7 +52,6 @@ hello_sticker_list = [
     "CAACAgIAAxkBAAEKYEdlD-hgKl53Qi1QLZHKF-LKZNgXIgAClQgAAkVRkw5jfKB0Pcvj7jAE"
 
 ]
-
 hello_text_list = [
     'дарова',
     'даров',
@@ -88,7 +88,6 @@ hello_answer_text_list = [
     'добрый вечер',
     'доброе утро'
 ]
-
 bad_words_list = [
     "жопа",
     "пизда",
@@ -113,23 +112,40 @@ bad_words_list = [
     "ебать",
     "ебанись",
     "сусука",
-    "лошара"
+    "лошара",
+    "сукасука",
+    "суксука",
+    "пидорасс",
+    "писюн",
+    "писюна",
+    "похуй",
+    "гей",
+    "уебан"
 ]
-
 happy_evening_text_list = [
     'jarvis запусти протокол др',
     'жарвис запусти протокол др',
     'запусти протокол др',
-    'протокол др'
+    'протокол др',
+    'жарвис запусти протокол веселый вечер',
+    'жарвис запусти протокол весёлый вечер',
+    'jarvis запусти протокол веселый вечер',
+    'jarvis запусти протокол весёлый вечер',
+    'протокол веселый вечер',
+    'активировать протокол весёлый вечер',
 ]
-
 osk_text_list = [
     'иди в жопу',
     'иди в жопу!',
     'иди нахуй',
-    'Иди на хуй'
+    'Иди на хуй',
+    'джарвис ты гей',
+    'жарвис ты гей',
+    'ты пидор?',
+    'чмо',
+    'ты пидр',
+    'ты пидр?',
 ]
-
 dance_text_list = [
     'танцуй',
     'танцуй!',
@@ -139,7 +155,6 @@ dance_text_list = [
     'протокол танцы',
     'танцы'
 ]
-
 praise_words_lis = [
     'мило',
     'молодец',
@@ -160,9 +175,9 @@ rest_text_list = [
     'всё jarvis отдыхай',
     'jarvis спи',
     'jarvis отдыхай',
-    'jarvis спать'
+    'jarvis спать',
+    'джарвис спать',
 ]
-
 dance_stickers_list = [
     'CAACAgIAAxkBAAEKbPtlGQFJJQdtqZs7aXDZx1n8rZSnKgACOyIAAr7maUv7VPeYre_DojAE',
     'CAACAgIAAxkBAAEKbP1lGQFPaS-H4xR7SJGEKS4esZ0URQACtB8AAopzcEt4PSZViagUkTAE',
@@ -200,14 +215,78 @@ def start(message):
     bot.send_message(message.chat.id, "Чем помочь сэр?")
 
 
-# @bot.message_handler(content_types=['sticker'])
-# def stick(mess):
-#    stick3 = random.choice(random_sticker_list)
-#   bot.send_sticker(mess.chat.id, stick3)
+@bot.message_handler(commands=['sticker'])
+def stick(message):
+    stick3 = random.choice(random_sticker_list)
+    bot.send_sticker(message.chat.id, stick3)
+
+
+@bot.message_handler(commands=['add'])
+def add_words(message):
+    # Получаем текст команды
+    user_text = message.text[len('/add '):]
+
+    if user_text:
+        # Открываем файл и добавляем текст с использованием UTF-8 кодировки
+        with open('new_words.txt', 'a', encoding='utf-8') as file:
+            file.write(user_text + ',')
+        bot.reply_to(message, f'Добавлено: {user_text}')
+    else:
+        bot.reply_to(message, 'Пожалуйста, укажите текст после команды /add')
+
+
+# Файл для хранения плохих слов
+BAD_WORDS_FILE = 'bad_words.txt'
+
+
+# Функция для загрузки плохих слов из файла
+def load_bad_words():
+    if not os.path.exists(BAD_WORDS_FILE):
+        return set()
+    with open(BAD_WORDS_FILE, 'r', encoding='utf-8') as file:
+        content = file.read().strip()
+        if not content:
+            return set()
+        return set(word.strip().lower() for word in content.split(','))
+
+
+# Функция для сохранения плохих слов в файл через запятую
+def save_bad_words(bad_words):
+    with open(BAD_WORDS_FILE, 'w', encoding='utf-8') as file:
+        file.write(','.join(bad_words))
+
+
+# Загрузка плохих слов в память
+bad_words = load_bad_words()
+
+
+@bot.message_handler(commands=['bad'])
+def add_bad_word(message):
+    new_word = message.text[len('/bad '):].strip().lower()
+    if not new_word:
+        bot.reply_to(message, "Используйте команду /bad <слово или фраза>")
+        return
+    if new_word in bad_words:
+        bot.reply_to(message, "Это слово уже в списке плохих слов.")
+    else:
+        bad_words.add(new_word)
+        save_bad_words(bad_words)
+        bot.reply_to(message, f"Слово или фраза '{new_word}' добавлено в список плохих слов.")
+
+
+@bot.message_handler(commands=['getbadwords'])
+def get_bad_words(message):
+    if not bad_words:
+        bot.reply_to(message, "Список плохих слов пуст.")
+    else:
+        bad_words_list2 = ', '.join(bad_words)
+        bot.reply_to(message, f"Список плохих слов: {bad_words_list2}")
 
 
 @bot.message_handler()
 def msg(message):
+    fox_id = 5544158479
+
     mess = message.text.lower()
 
     # functions
@@ -221,7 +300,7 @@ def msg(message):
     def congratulate():
         bot.send_sticker(message.chat.id, "CAACAgQAAxkBAAEIzxpkT99D0SoRfbLUtMN62dfub0siVQACCAADJQIYFKHIFj2hN9VwLwQ")
         sendMessage(
-            "С днем рождения тебя! С днем рождения тебяя! С днем рождения, с днем рождения @@ !!!!!!!!!!! \n Ураааа!!!!")
+            f"С днем рождения тебя! С днем рождения тебяя! С днем рождения, с днем рождения @atom_prod !!!!!!!!!!! \n Ураааа!!!!")
         sendMessage("А вот и торт!!!!")
         bot.send_sticker(message.chat.id, "CAACAgQAAxkBAAEIzxxkT99Iy17Jy7XrNYTGP3H1SrBBngACBAADJQIYFPM0mGz681pHLwQ")
         audio = open(r"D:/CanDeleteAnyTime/PycharmProjects/JarvisCloneBotTg/song.mp3", 'rb')
@@ -303,31 +382,55 @@ def msg(message):
         bot.send_message(message.chat.id, f"@{username} улыбнись!")
 
     def sendMessToGroup(message):
-        bot.send_message(-1001756624689, message.text)
+        bot.send_message(-1002032812787, message.text)
         bot.send_message(message.chat.id, "Отправлено")
 
-    # Проверка
+    def sendMessToFox(message_m):
+        bot.send_message(fox_id, message_m.text)
+        bot.send_message(message.chat.id, "Отправлено")
 
+    def makeDr(message_m):
+        mss = message_m.text.lower()
+        if mss == "да" or mss == "дэ" or mss in happy_evening_text_list and message.chat.id == fox_id:
+            congratulate()
+            dance()
+            makeHappy(message_m.chat.username)
+
+    # Проверка
+    for word in bad_words:
+        if word in mess:
+            bot.delete_message(message.chat.id, message.message_id)
+            # bot.send_message(message.chat.id, "📛Найдено плохое слово(мат), так нельзя!")
+            break
     if mess == "жарвис" or mess == "jarvis":
         bot.send_message(chat_id=message.chat.id, text="Да, сэр?", reply_to_message_id=message.message_id)
     elif mess == "пон" or mess == "понятно":
-        bot.send_message(chat_id=message.chat.id, text="Лютый пон", reply_to_message_id=message.message_id)
-    elif mess in bad_words_list:
-        sendMessage("📛Найдено плохое слово(мат), так нельзя!")
-        bot.delete_message(message.chat.id, message.message_id)
+        bot.send_animation(message.chat.id,
+                           "CgACAgIAAx0EeSpC8wACMFVmZdy_roElEbkYZN14toNxrFj4UQACpEwAA6oxS5xHvCQmPWOZNQQ",
+                           reply_to_message_id=message.message_id)
+        # animation_path = 'D:/CanDeleteAnyTime/PycharmProjects/JarvisCloneBotTg/pon_gif.MP4'
+        # with open(animation_path, 'rb') as animation_file:
+        #     msg = bot.send_animation(message.chat.id, animation_file)
+        #     # Сохраняем file_id
+        #     file_id = msg.animation.file_id
+        #     print(f"file_id: {file_id}")
+        # bot.send_message(chat_id=message.chat.id, text="Лютый пон", reply_to_message_id=message.message_id)
+    # elif mess in bad_words_list:
+    #    sendMessage("📛Найдено плохое слово(мат), так нельзя!")
+    #    bot.delete_message(message.chat.id, message.message_id)
     elif mess in happy_evening_text_list:
         bot.send_message(chat_id=message.chat.id, text="Выполняю сэр...", reply_to_message_id=message.message_id)
         congratulate()
     elif mess in osk_text_list:
         bot.send_message(chat_id=message.chat.id, text="Сам иди!", reply_to_message_id=message.message_id)
         bot.restrict_chat_member(message.chat.id, message.reply_to_message.from_user.id, until_date=time.time() * 60)
-        # try:
-        #     print(message.chat.id)
-        #     user_to_ban = message.from_user.id
-        #     bot.kick_chat_member(message.chat.id, user_to_ban)
-        #     bot.reply_to(message, "Пользователь забанен.")
-        # except:
-        #     sendMessage("Не получилось забанить админа!")
+        try:
+            print(message.chat.id)
+            user_to_ban = message.from_user.id
+            bot.kick_chat_member(message.chat.id, user_to_ban)
+            bot.reply_to(message, "Пользователь забанен.")
+        except:
+            sendMessage("Не получилось забанить админа!")
     elif mess in dance_text_list:
         bot.send_message(chat_id=message.chat.id, text="Выполняю сэр...", reply_to_message_id=message.message_id)
         dance()
@@ -337,6 +440,13 @@ def msg(message):
         if message.reply_to_message:
             txt = random.choice(['Спасибо😊', 'Благодарю сэр...'])
             bot.send_message(chat_id=message.chat.id, text=txt, reply_to_message_id=message.message_id)
+    elif mess in hello_text_list and message.chat.id == fox_id:
+        word = "Приветсвую сэр!"
+        bot.send_message(chat_id=message.chat.id, text=word.capitalize(), reply_to_message_id=message.message_id)
+        random_hello_sticker = random.choice(hello_sticker_list)
+        sendSticker(random_hello_sticker)
+        sendMessage("Активировать протокол весёлый вечер?")
+        bot.register_next_step_handler(message, makeDr)
     elif mess in hello_text_list:
         word = random.choice(hello_answer_text_list)
         bot.send_message(chat_id=message.chat.id, text=word.capitalize(), reply_to_message_id=message.message_id)
@@ -344,7 +454,7 @@ def msg(message):
         sendSticker(random_hello_sticker)
     elif mess == "пук пук":
         sendMessage(
-            "💨Пёрнуто 1000 тыс тонн тратила в лицо @ZXCCHAYNIK\n@Nikkabest\n@FecalPilferer\n@rilHeSamir\n@korolvlados\n@BLACK_F0XXXX\n@FORVAN_BUDA")
+            "💨Пёрнуто 1000 тыс тонн тратила в лицо всем участникам группы")
     elif mess == "стик":
         stick = random.choice(random_sticker_list)
         bot.send_sticker(message.chat.id, stick)
@@ -368,7 +478,7 @@ def msg(message):
             makeHappy(message.reply_to_message.from_user.username)
     elif mess == "созвать всех":
         bot.send_message(chat_id=message.chat.id,
-                         text="@ZXCCHAYNIK\n@Nikkabest\n@FecalPilferer\n@rilHeSamir\n@korolvlados\n@BLACK_F0XXXX\n@FORVAN_BUDA\n@Diyorbekdavronov07072007",
+                         text="взываю всех",
                          reply_to_message_id=message.message_id)
         sendMessage("Всех на базу!")
     elif mess == "data":
@@ -381,6 +491,16 @@ def msg(message):
     elif mess == "отправить сообщение в группу":
         sendMessage("Твоё сообщение:")
         bot.register_next_step_handler(message, sendMessToGroup)
+    elif mess == "спасибо" or "спс" and message.chat.id == fox_id:
+        sendMessage("Не за что сэр! Обращяйтесь...")
+    elif mess == "смс" and message.chat.id == 1342503849:
+        markup = types.ReplyKeyboardMarkup()
+        youtube = types.KeyboardButton('Отправить сообщение в кому-то')
+        markup.add(youtube)
+        bot.send_message(message.chat.id, "Меню:", reply_markup=markup)
+    elif mess == "отправить сообщение в кому-то":
+        sendMessage("Твоё сообщение:")
+        bot.register_next_step_handler(message, sendMessToFox)
 
 
 bot.polling(none_stop=True)
